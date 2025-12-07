@@ -70,7 +70,7 @@ sudo udevadm trigger
 
 ```bash
 sudo mkdir -p /etc/boreas
-sudo cp config.json /etc/boreas/
+sudo cp P2-62D/config.json /etc/boreas/
 ```
 
 ### 4. Install systemd Service
