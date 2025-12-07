@@ -61,7 +61,7 @@ sudo ln -sf /usr/local/lib/boreas/boreas /usr/local/bin/boreas
 ### 2. Install udev Rules (for non-root access)
 
 ```bash
-sudo cp 99-boreas.rules /etc/udev/rules.d/
+sudo cp install/99-boreas.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
@@ -76,7 +76,7 @@ sudo cp config.json /etc/boreas/
 ### 4. Install systemd Service
 
 ```bash
-sudo cp boreas.service /etc/systemd/system/
+sudo cp install/boreas.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now boreas
 ```
