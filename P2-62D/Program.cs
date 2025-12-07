@@ -107,11 +107,11 @@ class Program
                 {
                     case DisplayMode.CpuTempCelsius:
                         var tempC = sensors.ReadCpuTemperature();
-                        if (tempC.HasValue) device.DisplayCelsius(tempC.Value);
+                        if (tempC.HasValue) device.DisplayTemperature(tempC.Value, celsius: true);
                         break;
                     case DisplayMode.CpuTempFahrenheit:
                         var tempF = sensors.ReadCpuTemperature();
-                        if (tempF.HasValue) device.DisplayFahrenheit(BoreasProtocol.CelsiusToFahrenheit(tempF.Value));
+                        if (tempF.HasValue) device.DisplayTemperature(BoreasProtocol.CelsiusToFahrenheit(tempF.Value), celsius: false);
                         break;
                     case DisplayMode.CpuFanSpeed:
                         var rpm = sensors.ReadCpuFanSpeed();
@@ -195,11 +195,11 @@ Examples:
         device.Initialize();
 
         Console.WriteLine("Test 1: Celsius 42.5°C");
-        device.DisplayCelsius(42.5);
+        device.DisplayTemperature(42.5, celsius: true);
         Thread.Sleep(2000);
 
         Console.WriteLine("Test 2: Fahrenheit 98.6°F");
-        device.DisplayFahrenheit(98.6);
+        device.DisplayTemperature(98.6, celsius: false);
         Thread.Sleep(2000);
 
         Console.WriteLine("Test 3: Fan 1234 RPM");
@@ -210,7 +210,7 @@ Examples:
         var sensors = new SensorReader();
 
         var temp = sensors.ReadCpuTemperature();
-        if (temp.HasValue) { Console.WriteLine($"  CPU Temp: {temp.Value:F1}°C"); device.DisplayCelsius(temp.Value); Thread.Sleep(2000); }
+        if (temp.HasValue) { Console.WriteLine($"  CPU Temp: {temp.Value:F1}°C"); device.DisplayTemperature(temp.Value); Thread.Sleep(2000); }
 
         var fan = sensors.ReadCpuFanSpeed();
         if (fan.HasValue) { Console.WriteLine($"  CPU Fan: {fan.Value} RPM"); device.DisplayFanSpeed(fan.Value); Thread.Sleep(2000); }

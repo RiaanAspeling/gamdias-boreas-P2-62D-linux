@@ -49,8 +49,7 @@ public sealed class BoreasDevice : IDisposable
     }
 
     public bool Initialize() => SendPacket(BoreasProtocol.BuildInitPacket());
-    public bool DisplayCelsius(double temperature, bool flashing = false) => SendPacket(BoreasProtocol.BuildCelsiusPacket(temperature, flashing));
-    public bool DisplayFahrenheit(double temperature, bool flashing = false) => SendPacket(BoreasProtocol.BuildFahrenheitPacket(temperature, flashing));
+    public bool DisplayTemperature(double temperature, bool celsius = true, bool flashing = false) => SendPacket(BoreasProtocol.BuildTemperaturePacket(temperature, celsius, flashing));
     public bool DisplayFanSpeed(int rpm, bool flashing = false) => SendPacket(BoreasProtocol.BuildFanPacket(rpm, flashing));
 
     public void Dispose()
