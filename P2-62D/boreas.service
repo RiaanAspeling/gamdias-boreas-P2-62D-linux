@@ -1,0 +1,13 @@
+[Unit]
+Description=BOREAS Display Daemon
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/boreas /etc/boreas/config.json
+Restart=on-failure
+RestartSec=5
+SupplementaryGroups=plugdev
+
+[Install]
+WantedBy=multi-user.target
