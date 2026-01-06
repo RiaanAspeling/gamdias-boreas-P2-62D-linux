@@ -6,6 +6,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>boreas</AssemblyName>
+
+    <!-- Version Information -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- Package Metadata -->
+    <Product>BOREAS Linux Driver</Product>
+    <Description>Linux daemon for GAMDIAS BOREAS P2-62D digital display</Description>
+    <Authors>BOREAS Linux Project Contributors</Authors>
+    <Copyright>Copyright © 2024 BOREAS Linux Project Contributors</Copyright>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
