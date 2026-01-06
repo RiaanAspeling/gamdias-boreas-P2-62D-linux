@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Restore dependencies
+        run: dotnet restore P2-62D/Boreas.csproj
+
+      - name: Build
+        run: dotnet build P2-62D/Boreas.csproj -c Release --no-restore
+
+      - name: Publish linux-x64
+        run: |
+          dotnet publish P2-62D/Boreas.csproj \
+            -c Release \
+            -r linux-x64 \
+            --self-contained false \
+            -o release/boreas-linux-x64
+
+      - name: Prepare release assets
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+
+          # Copy installation files
+          cp install/boreas.service release/boreas-linux-x64/
+          cp install/99-boreas.rules release/boreas-linux-x64/
+          cp README.md release/boreas-linux-x64/
+          cp CHANGELOG.md release/boreas-linux-x64/
+          cp LICENSE release/boreas-linux-x64/ 2>/dev/null || true
+
+          # Create INSTALL.txt with quick start guide
+          cat > release/boreas-linux-x64/INSTALL.txt << 'EOF'
+          BOREAS Linux Driver - Quick Installation Guide
+          ==============================================
+
+          Prerequisites:
+          - .NET 8.0 Runtime: sudo apt install dotnet-runtime-8.0
+          - HID API Library: sudo apt install libhidapi-hidraw0
+
+          Installation Steps:
+
+          1. Copy the binary:
+             sudo mkdir -p /usr/local/lib/boreas
+             sudo cp boreas /usr/local/lib/boreas/
+             sudo ln -sf /usr/local/lib/boreas/boreas /usr/local/bin/boreas
+
+          2. Install udev rules (for non-root access):
+             sudo cp 99-boreas.rules /etc/udev/rules.d/
+             sudo udevadm control --reload-rules
+             sudo udevadm trigger
+
+          3. Install systemd service:
+             sudo mkdir -p /etc/boreas
+             boreas --generate-config | sudo tee /etc/boreas/config.json
+             sudo cp boreas.service /etc/systemd/system/
+             sudo systemctl daemon-reload
+             sudo systemctl enable boreas
+             sudo systemctl start boreas
+
+          For more details, see README.md
+          EOF
+
+          cd release
+
+          # Create archives
+          tar -czvf boreas-v${VERSION}-linux-x64.tar.gz boreas-linux-x64/
+          zip -r boreas-v${VERSION}-linux-x64.zip boreas-linux-x64/
+
+          # Generate checksums
+          sha256sum boreas-v${VERSION}-linux-x64.tar.gz > checksums.txt
+          sha256sum boreas-v${VERSION}-linux-x64.zip >> checksums.txt
+
+      - name: Extract release notes from CHANGELOG
+        id: changelog
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          # Extract the section for this version from CHANGELOG.md
+          # This gets everything between ## [X.Y.Z] and the next ## [
+          awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > release_notes.md
+
+          # If no specific version found, use a default message
+          if [ ! -s release_notes.md ]; then
+            echo "Release v${VERSION}" > release_notes.md
+            echo "" >> release_notes.md
+            echo "See CHANGELOG.md for details." >> release_notes.md
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ steps.version.outputs.VERSION }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
+          files: |
+            release/boreas-v${{ steps.version.outputs.VERSION }}-linux-x64.tar.gz
+            release/boreas-v${{ steps.version.outputs.VERSION }}-linux-x64.zip
+            release/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

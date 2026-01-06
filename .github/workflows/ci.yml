@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore P2-62D/Boreas.csproj
+
+      - name: Build
+        run: dotnet build P2-62D/Boreas.csproj -c Release --no-restore -warnaserror
+
+      - name: Publish (verify publishable)
+        run: |
+          dotnet publish P2-62D/Boreas.csproj \
+            -c Release \
+            -r linux-x64 \
+            --self-contained false \
+            -o publish/
+
+      - name: Verify build output
+        run: |
+          echo "Build output:"
+          ls -la publish/
+          echo ""
+          echo "Binary info:"
+          file publish/boreas
