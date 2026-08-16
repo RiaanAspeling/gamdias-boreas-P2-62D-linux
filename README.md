@@ -15,10 +15,20 @@ This project provides a native Linux solution to display CPU temperature and fan
 
 ## Hardware
 
-- **Device**: GAMDIAS BOREAS P2-62D Digital Display
-- **USB ID**: `1B80:B53A`
 - **Protocol**: USB HID
 - **Display**: 4-digit 7-segment with temperature/fan icons
+
+### Supported Devices
+
+| Device | USB ID | Status |
+|--------|--------|--------|
+| GAMDIAS BOREAS P2-62D | `1B80:B53A` | Tested |
+| GAMDIAS BOREAS M2-51D (also sold as Rosewill M2-51D) | `1B80:B554` | Untested — see [Related Projects](#related-projects) |
+
+GAMDIAS ships several sibling displays on nearby product IDs (`B533`, `B534`,
+`B538`, `B53C`), which this driver does **not** currently claim. If you own one
+and it responds to this protocol, a pull request adding its ID is welcome — see
+`SupportedProducts` in `P2-62D/BoreasDevice.cs` and `install/99-boreas.rules`.
 
 ## Prerequisites
 
@@ -42,17 +52,17 @@ sudo pacman -S dotnet-runtime aspnet-runtime hidapi
 ## Building
 
 ```bash
-cd P2-62D
 dotnet build -c Release
 ```
 
 ## Installation
 
+All commands below are run from the repository root.
+
 ### 1. Build and Install Binary
 
 ```bash
-cd P2-62D
-dotnet publish -c Release -o publish
+dotnet publish P2-62D/Boreas.csproj -c Release -o publish
 sudo mkdir -p /usr/local/lib/boreas
 sudo cp -r publish/* /usr/local/lib/boreas/
 sudo ln -sf /usr/local/lib/boreas/boreas /usr/local/bin/boreas
@@ -64,6 +74,13 @@ sudo ln -sf /usr/local/lib/boreas/boreas /usr/local/bin/boreas
 sudo cp install/99-boreas.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 sudo udevadm trigger
+```
+
+The rule grants access to the `plugdev` group, so add yourself to it and log
+out and back in:
+
+```bash
+sudo usermod -aG plugdev $USER
 ```
 
 ### 3. Install Configuration
@@ -117,7 +134,10 @@ Edit `/etc/boreas/config.json`:
 ## Usage
 
 ```bash
-# Run with default config
+# Show help
+boreas --help
+
+# Run with default config (/etc/boreas/config.json)
 boreas
 
 # Run with custom config
@@ -182,30 +202,44 @@ The USB HID protocol was reverse-engineered from the Windows ZEUS CAST applicati
 
 ### Packet Structure
 
+Every packet is a **64-byte HID output report**. Only the first 13 bytes carry
+data; the remainder is zero padding and must still be sent.
+
 | Byte | Field | Description |
 |------|-------|-------------|
 | 0 | Header | `0x3A` |
 | 1 | Header | `0xB5` |
-| 2 | Command | `0x01` |
-| 3-6 | Digits | Display digits (0-9 or 0x20 for blank) |
+| 2 | Command | `0x01` = display, `0x20` = init |
+| 3-6 | Digits | Display digits, leftmost first (0-9, or `0x20` to blank) |
 | 7 | Decimal | `0x01` = show decimal point |
 | 8 | Unit | `0x01` = Celsius, `0x00` = Fahrenheit |
-| 9 | CPU Mode | `0x01` = CPU temp mode |
+| 9 | CPU Icon | `0x01` = show CPU icon |
 | 10 | Display Mode | `0x00` = temperature, `0x01` = fan |
 | 11 | Flashing | `0x01` = flash display |
 | 12 | Checksum | Sum of bytes 0-11 & 0xFF |
 
-### Display Modes
+An init packet (command `0x20`, all other data bytes zero) is sent once after
+connecting, before any display packet.
 
-**Temperature Mode** (byte 10 = 0x00):
+Byte 9 controls the CPU icon only — it is independent of the display mode in
+byte 10. Temperature packets set it, fan packets clear it.
+
+### Packet Types
+
+**Temperature** (byte 10 = `0x00`):
 - Digits represent value × 10 (e.g., 457 = 45.7°)
 - Decimal point shown between digit 3 and 4
 - Shows °C or °F icon based on byte 8
+- Up to 2 leading zeros blanked (so 5.0° sends `0x20 0x20 5 0`)
 
-**Fan Mode** (byte 10 = 0x01):
+**Fan** (byte 10 = `0x01`):
 - Digits represent RPM directly (e.g., 1234 = 1234 RPM)
 - No decimal point
 - Shows fan icon
+- Up to 3 leading zeros blanked (so 900 RPM sends `0x20 9 0 0`)
+
+In both cases the value is clamped to the range 0-9999 before the digits are
+extracted.
 
 ## Troubleshooting
 
@@ -228,6 +262,14 @@ Ensure udev rules are installed and you're in the `plugdev` group:
 sudo usermod -aG plugdev $USER
 # Log out and back in
 ```
+
+## Related Projects
+
+- [gamdias-boreas-cpu-air-cooler-linux-driver](https://github.com/yanfuzhou/gamdias-boreas-cpu-air-cooler-linux-driver)
+  by [@yanfuzhou](https://github.com/yanfuzhou) — a Rust implementation of the same
+  protocol, also GPL-3.0. It needs no .NET runtime and ships prebuilt binaries, so
+  it may be the better choice if you would rather not install a runtime. The
+  M2-51D product ID listed above was identified by that project.
 
 ## License
 

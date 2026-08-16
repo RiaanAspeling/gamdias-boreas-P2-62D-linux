@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2024 BOREAS Linux Project Contributors
+// Copyright (C) 2025 BOREAS Linux Project Contributors
 
 using System.Runtime.InteropServices;
 using Boreas;
@@ -80,7 +80,7 @@ class Program
 
         if (!_running) return 0;
 
-        Console.WriteLine("Connected to BOREAS display");
+        Console.WriteLine($"Connected to {device.ConnectedProduct ?? "BOREAS display"}");
         device.Initialize();
 
         int currentDisplayIndex = 0;
@@ -191,7 +191,7 @@ Examples:
 
         if (!device.Connect()) { Console.Error.WriteLine("Failed to connect to device."); return 1; }
 
-        Console.WriteLine("Connected!");
+        Console.WriteLine($"Connected to {device.ConnectedProduct ?? "BOREAS display"}!");
         device.Initialize();
 
         Console.WriteLine("Test 1: Celsius 42.5°C");

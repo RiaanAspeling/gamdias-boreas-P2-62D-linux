@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2024 BOREAS Linux Project Contributors
+// Copyright (C) 2025 BOREAS Linux Project Contributors
 
 namespace Boreas;
 

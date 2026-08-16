@@ -2,7 +2,7 @@
   "UpdateIntervalMs": 1000,
   "Sensors": {
     "CpuTempPath": null,
-    "CpuFanPath": "/sys/class/hwmon/hwmon6/fan1_input"
+    "CpuFanPath": null
   },
   "Display": [
     {

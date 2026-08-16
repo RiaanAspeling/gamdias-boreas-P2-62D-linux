@@ -1,3 +1,9 @@
-# GAMDIAS BOREAS P2-62D Display - allow access without root
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b53a", MODE="0666"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b53a", MODE="0666"
+# GAMDIAS BOREAS digital displays - allow access without root
+
+# BOREAS P2-62D
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b53a", GROUP="plugdev", MODE="0660"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b53a", GROUP="plugdev", MODE="0660"
+
+# BOREAS M2-51D (also sold as the Rosewill M2-51D)
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b554", GROUP="plugdev", MODE="0660"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="b554", GROUP="plugdev", MODE="0660"
